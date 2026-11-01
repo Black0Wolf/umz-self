@@ -4,8 +4,11 @@ Unofficial Flutter client (Windows + Android) for the UMZ food reservation
 system at <https://self.umz.ac.ir>. Reverse-engineering notes are in
 [NOTES.md](NOTES.md).
 
-Status: v0.1 — login, balance, week menu, reserve. Cancel, reserved list,
-auto-reserve and stats are not built yet.
+Status: v0.2 — login, balance, week menu, reserve, "reserve everything
+available" for the week on screen, auto-reserve (checks every 5 minutes while
+the app is open) and a stats screen built from the app's own reservation
+ledger. Not built yet: cancel, the server-side reserved list, and
+auto-reserve while the app is closed.
 
 ## Layout
 

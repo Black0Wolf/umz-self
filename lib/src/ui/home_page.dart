@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../api/models.dart';
 import '../state/app_state.dart';
+import 'stats_page.dart';
 import 'strings.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,6 +17,12 @@ class HomePage extends StatelessWidget {
         title: Text(s.t('appTitle')),
         actions: [
           TextButton(onPressed: s.toggleLanguage, child: Text(s.t('language'))),
+          IconButton(
+            tooltip: s.t('stats'),
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const StatsPage())),
+          ),
           IconButton(
             tooltip: s.t('refresh'),
             icon: const Icon(Icons.refresh),
@@ -36,6 +43,7 @@ class HomePage extends StatelessWidget {
             _CreditCard(state: s),
             const SizedBox(height: 8),
             _WeekNav(state: s),
+            _BulkActions(state: s),
             if (s.weekError != null)
               Padding(
                 padding: const EdgeInsets.all(8),
@@ -102,6 +110,159 @@ class _WeekNav extends StatelessWidget {
           child: Text(state.t('nextWeek')),
         ),
       ],
+    );
+  }
+}
+
+class _BulkActions extends StatelessWidget {
+  const _BulkActions({required this.state});
+  final AppState state;
+
+  Future<void> _reserveAll(BuildContext context) async {
+    final plans = state.planVisibleWeek();
+    final messenger = ScaffoldMessenger.of(context);
+    if (plans.isEmpty) {
+      messenger.showSnackBar(
+          SnackBar(content: Text(state.t('nothingToReserve'))));
+      return;
+    }
+    final total = plans.fold<int>(0, (sum, p) => sum + p.price);
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${state.t('reserveAllTitle')} (${plans.length} '
+            '${state.t('items')})'),
+        content: SizedBox(
+          width: 420,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final p in plans)
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('${p.day.title} · ${p.meal.name}'),
+                  subtitle: Text('${p.food.name}\n${p.offer.selfName}'),
+                  isThreeLine: true,
+                  trailing: Text(formatToman(p.price),
+                      textDirection: TextDirection.ltr),
+                ),
+              const Divider(),
+              Text('${state.t('total')}: ${formatToman(total)} '
+                  '${state.t('toman')}'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(state.t('cancel'))),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(state.t('confirm'))),
+        ],
+      ),
+    );
+    if (go != true) return;
+
+    final summary = await state.reserveAll(plans);
+    if (!context.mounted) return;
+    final lines = <String>[
+      '${state.t('reservedN')} ${summary.reserved} · '
+          '${formatToman(summary.spentRial)} ${state.t('toman')}',
+      if (summary.failures.isNotEmpty) ...[
+        '',
+        state.t('failedN'),
+        ...summary.failures,
+      ],
+    ];
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(state.t('reserveAllTitle')),
+        content: SingleChildScrollView(child: Text(lines.join('\n'))),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(state.t('close'))),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showActivity(BuildContext context) => showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(state.t('activity')),
+          content: SizedBox(
+            width: 420,
+            child: state.activity.isEmpty
+                ? Text(state.t('noActivity'))
+                : ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final line in state.activity)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(line),
+                        ),
+                    ],
+                  ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(state.t('close'))),
+          ],
+        ),
+      );
+
+  String _lastRun() {
+    final t = state.lastAutoRun;
+    if (t == null) return '';
+    String two(int v) => v.toString().padLeft(2, '0');
+    return ' · ${state.t('lastRun')} ${two(t.hour)}:${two(t.minute)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed:
+                    state.reserving ? null : () => _reserveAll(context),
+                icon: state.reserving
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.done_all),
+                label: Text(state.t('reserveAll')),
+              ),
+            ),
+            SwitchListTile(
+              value: state.autoReserve,
+              onChanged: state.setAutoReserve,
+              title: Text(state.t('autoReserve')),
+              subtitle: Text('${state.t('autoReserveHint')}${_lastRun()}'),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton.icon(
+                onPressed: () => _showActivity(context),
+                icon: const Icon(Icons.history),
+                label: Text(state.t('activity')),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

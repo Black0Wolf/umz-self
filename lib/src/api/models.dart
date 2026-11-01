@@ -22,6 +22,9 @@ const int priceTypeSubsidised = 2;
 /// Meal states seen in the wild. Only [mealStateOpen] means "can reserve".
 const int mealStateOpen = 0;
 
+/// `StateCode` the server returns when the balance is too low.
+const int stateCodeInsufficientBalance = 3;
+
 /// One dining hall offering a food, with its prices in rial.
 class SelfOffer {
   SelfOffer({
@@ -152,6 +155,9 @@ class Meal {
   final List<Map<String, dynamic>> lastReserved;
 
   bool get isOpen => state == mealStateOpen;
+
+  /// True when the server already lists a reservation for this meal.
+  bool get hasReservation => lastReserved.isNotEmpty;
 
   /// Subsidised price applies when a type-2 limit exists for [foodType].
   /// (Mirrors the web app; exact limit semantics are not fully verified.)

@@ -23,6 +23,8 @@ abstract class CredentialStore {
   Future<void> setLastUsername(String? username);
   Future<String?> language();
   Future<void> setLanguage(String lang);
+  Future<bool> autoReserve();
+  Future<void> setAutoReserve(bool on);
 }
 
 class SecureCredentialStore implements CredentialStore {
@@ -34,6 +36,7 @@ class SecureCredentialStore implements CredentialStore {
   static const _kAccounts = 'accounts';
   static const _kLast = 'last_username';
   static const _kLang = 'language';
+  static const _kAuto = 'auto_reserve';
 
   @override
   Future<List<Account>> accounts() async {
@@ -82,4 +85,11 @@ class SecureCredentialStore implements CredentialStore {
 
   @override
   Future<void> setLanguage(String lang) => _s.write(key: _kLang, value: lang);
+
+  @override
+  Future<bool> autoReserve() async => await _s.read(key: _kAuto) == '1';
+
+  @override
+  Future<void> setAutoReserve(bool on) =>
+      _s.write(key: _kAuto, value: on ? '1' : '0');
 }
