@@ -16,7 +16,13 @@ FakeAdapter happyServer([Session? session]) {
     'GET /': (o) => s.authed
         ? page('<html>app</html>')
         : redirect('/identity/login?signin=abc', headers: {
-            'set-cookie': ['nonce=n1; path=/; secure; HttpOnly'],
+            // The real server also sends nameless cookies; they must not break
+            // the client.
+            'set-cookie': [
+              '; SameSite=Strict',
+              'nonce=n1; path=/; secure; HttpOnly',
+              '; HttpOnly',
+            ],
           }),
     'GET /identity/login': (_) => page(loginPage(), headers: {
           'set-cookie': ['idsrv.xsrf=tok123; path=/; secure'],

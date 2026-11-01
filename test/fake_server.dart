@@ -15,8 +15,7 @@ class FakeAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(RequestOptions o, Stream<Uint8List>? body,
       Future<void>? cancel) async {
-    final path = o.uri.path.isEmpty ? '/' : o.uri.path;
-    final key = '${o.method} $path';
+    final path = o.uri.path.isEmpty ? '/' : o.uri.path;    final key = '${o.method} $path';
     log.add(key);
     final h = routes[key];
     if (h == null) return ResponseBody.fromString('not found: $key', 404);

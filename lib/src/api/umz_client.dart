@@ -3,6 +3,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io' show Cookie;
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -101,6 +102,38 @@ FormPost? parseFormPost(String body) {
   return FormPost(form.attributes['action'] ?? '', fields);
 }
 
+bool _validCookie(String value) {
+  try {
+    return Cookie.fromSetCookieValue(value).name.isNotEmpty;
+  } on Object {
+    return false;
+  }
+}
+
+/// Removes Set-Cookie values the cookie jar could not parse.
+class _SanitizingAdapter implements HttpClientAdapter {
+  _SanitizingAdapter(this._inner);
+
+  final HttpClientAdapter _inner;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options,
+      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    final res = await _inner.fetch(options, requestStream, cancelFuture);
+    for (final key in res.headers.keys.toList()) {
+      if (key.toLowerCase() != 'set-cookie') continue;
+      res.headers[key] = [
+        for (final v in res.headers[key]!)
+          if (_validCookie(v)) v,
+      ];
+    }
+    return res;
+  }
+
+  @override
+  void close({bool force = false}) => _inner.close(force: force);
+}
+
 class UmzClient {
   UmzClient({String baseUrl = 'https://self.umz.ac.ir', Dio? dio})
       : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''),
@@ -112,6 +145,9 @@ class UmzClient {
     o.receiveTimeout = const Duration(seconds: 40);
     o.headers['User-Agent'] =
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) UMZSelf/0.1';
+    // The server sends nameless cookies ("; SameSite=Strict") that make
+    // Dart's cookie parser throw, so drop unparsable Set-Cookie values first.
+    _dio.httpClientAdapter = _SanitizingAdapter(_dio.httpClientAdapter);
     _dio.interceptors.add(CookieManager(_jar));
   }
 

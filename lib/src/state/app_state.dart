@@ -87,8 +87,8 @@ class AppState extends ChangeNotifier {
       loginError = e.message;
       status = AuthStatus.loggedOut;
       notifyListeners();
-    } on Object {
-      loginError = t('sessionError');
+    } on Object catch (e) {
+      loginError = '${t('sessionError')}\n$e';
       status = AuthStatus.loggedOut;
       notifyListeners();
     }
@@ -135,8 +135,8 @@ class AppState extends ChangeNotifier {
           : await client.week(lastDate: anchor, navigation: direction * 7);
     } on UmzException catch (e) {
       weekError = e.message;
-    } on Object {
-      weekError = t('sessionError');
+    } on Object catch (e) {
+      weekError = '${t('sessionError')}\n$e';
     }
     loadingWeek = false;
     notifyListeners();
