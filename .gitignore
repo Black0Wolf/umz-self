@@ -1,0 +1,25 @@
+# secrets and local-only material
+.env
+.env.*
+scratch/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# generated platform folders are created in CI (flutter create); remove these lines once committed
+/android/
+/windows/
+/ios/
+/macos/
+/linux/
+/web/
