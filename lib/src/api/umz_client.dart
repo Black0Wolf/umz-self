@@ -3,7 +3,6 @@
 library;
 
 import 'dart:convert';
-import 'dart:io' show Cookie;
 import 'dart:math';
 import 'dart:typed_data';
 
