@@ -8,6 +8,7 @@ import '../logic/planner.dart';
 import '../logic/stats.dart';
 import '../storage/credential_store.dart';
 import '../storage/ledger_store.dart';
+import '../storage/settings_store.dart';
 import '../ui/strings.dart';
 
 enum AuthStatus { starting, loggedOut, loggingIn, loggedIn }
@@ -27,18 +28,21 @@ class AppState extends ChangeNotifier {
     UmzClient? client,
     CredentialStore? store,
     LedgerStore? ledgerStore,
+    SettingsStore? settings,
     this.autoInterval = const Duration(minutes: 5),
     this.pauseBetweenReserves = const Duration(milliseconds: 600),
   })  : client = client ?? UmzClient(),
         store = store ?? SecureCredentialStore(),
-        ledgerStore = ledgerStore ?? PrefsLedgerStore();
+        ledgerStore = ledgerStore ?? PrefsLedgerStore(),
+        settings = settings ?? PrefsSettingsStore();
 
   final UmzClient client;
   final CredentialStore store;
   final LedgerStore ledgerStore;
+  final SettingsStore settings;
 
   /// How often auto-reserve looks for new meals while the app is open.
-  final Duration autoInterval;
+  Duration autoInterval;
 
   /// Gap between reserve calls so the server is not hammered.
   final Duration pauseBetweenReserves;
@@ -80,6 +84,10 @@ class AppState extends ChangeNotifier {
   /// Loads settings and tries to sign in with the last saved account.
   Future<void> start() async {
     lang = await store.language() ?? 'fa';
+    final minutes = await settings.autoIntervalMinutes();
+    if (minutes != null && minutes > 0) {
+      autoInterval = Duration(minutes: minutes);
+    }
     final last = await store.lastUsername();
     Account? saved;
     for (final a in await store.accounts()) {
@@ -287,6 +295,17 @@ class AppState extends ChangeNotifier {
       _stopAuto();
     }
     notifyListeners();
+  }
+
+  /// Changes how often auto-reserve checks; restarts the timer if running.
+  Future<void> setAutoInterval(int minutes) async {
+    autoInterval = Duration(minutes: minutes);
+    notifyListeners();
+    await settings.setAutoIntervalMinutes(minutes);
+    if (_autoTimer != null) {
+      _autoTimer?.cancel();
+      _autoTimer = Timer.periodic(autoInterval, (_) => autoTick());
+    }
   }
 
   void _startAuto() {

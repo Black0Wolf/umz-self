@@ -34,7 +34,7 @@ const Map<String, Map<String, String>> _strings = {
     'total': 'جمع',
     'autoReserve': 'رزرو خودکار',
     'autoReserveHint':
-        'تا وقتی برنامه باز است، هر ۵ دقیقه وعده‌های جدید این هفته و هفته بعد را رزرو می‌کند',
+        'تا وقتی برنامه باز است، وعده‌های جدید این هفته و هفته بعد را رزرو می‌کند',
     'lastRun': 'آخرین بررسی',
     'activity': 'گزارش فعالیت',
     'noActivity': 'هنوز فعالیتی ثبت نشده',
@@ -56,6 +56,23 @@ const Map<String, Map<String, String>> _strings = {
     'viaAuto': 'رزرو خودکار',
     'viaManual': 'رزرو دستی',
     'mostExpensive': 'گران‌ترین وعده',
+    'settings': 'تنظیمات',
+    'appearance': 'ظاهر',
+    'themeMode': 'حالت نمایش',
+    'modeSystem': 'سیستم',
+    'modeLight': 'روشن',
+    'modeDark': 'تیره',
+    'palette': 'رنگ تم',
+    'languageLabel': 'زبان',
+    'checkEvery': 'بررسی هر',
+    'minutes': 'دقیقه',
+    'account': 'حساب کاربری',
+    'signedInAs': 'وارد شده با',
+    'about': 'درباره',
+    'aboutText': 'برنامه غیررسمی برای سامانه رزرو غذای دانشگاه مازندران',
+    'today': 'امروز',
+    'reservedTag': 'رزرو شده',
+    'back': 'بازگشت',
   },
   'en': {
     'appTitle': 'UMZ Self',
@@ -91,7 +108,7 @@ const Map<String, Map<String, String>> _strings = {
     'total': 'Total',
     'autoReserve': 'Auto-reserve',
     'autoReserveHint':
-        'While the app is open, checks every 5 minutes and reserves new meals this week and next',
+        'While the app is open, reserves new meals this week and next',
     'lastRun': 'Last check',
     'activity': 'Activity log',
     'noActivity': 'No activity yet',
@@ -113,8 +130,59 @@ const Map<String, Map<String, String>> _strings = {
     'viaAuto': 'Auto-reserved',
     'viaManual': 'Reserved manually',
     'mostExpensive': 'Most expensive meal',
+    'settings': 'Settings',
+    'appearance': 'Appearance',
+    'themeMode': 'Mode',
+    'modeSystem': 'System',
+    'modeLight': 'Light',
+    'modeDark': 'Dark',
+    'palette': 'Accent palette',
+    'languageLabel': 'Language',
+    'checkEvery': 'Check every',
+    'minutes': 'min',
+    'account': 'Account',
+    'signedInAs': 'Signed in as',
+    'about': 'About',
+    'aboutText': 'Unofficial client for the University of Mazandaran food reservation system',
+    'today': 'Today',
+    'reservedTag': 'Reserved',
+    'back': 'Back',
   },
 };
+
+/// Server meal states, translated for English; Persian keeps the server text.
+String mealStateLabel(String lang, int state, String serverTitle) {
+  if (lang == 'fa') {
+    if (serverTitle.isNotEmpty) return serverTitle;
+    return const {
+          0: 'باز برای رزرو',
+          1: 'بسته',
+          4: 'خارج از زمان‌بندی',
+          5: 'برنامه تعریف نشده',
+          6: 'امکان رزرو نیست',
+        }[state] ??
+        '';
+  }
+  return const {
+        0: 'Open',
+        1: 'Closed',
+        4: 'Outside schedule',
+        5: 'No program',
+        6: 'Unavailable today',
+      }[state] ??
+      serverTitle;
+}
+
+String dayStateLabel(String lang, int state, String serverTitle) {
+  if (lang == 'fa') return serverTitle;
+  return const {
+        0: 'Active',
+        2: 'Inactive',
+        4: 'Holiday',
+        5: 'No schedule',
+      }[state] ??
+      serverTitle;
+}
 
 String tr(String lang, String key) =>
     _strings[lang]?[key] ?? _strings['en']![key] ?? key;
