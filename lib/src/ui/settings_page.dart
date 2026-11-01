@@ -227,7 +227,7 @@ class SettingsPage extends StatelessWidget {
                           const AppMark(size: 36),
                           const SizedBox(width: 12),
                           Expanded(child: Text(s.t('appTitle'))),
-                          Text('v$appVersion',
+                          const Text('v$appVersion',
                               textDirection: TextDirection.ltr),
                         ],
                       ),
