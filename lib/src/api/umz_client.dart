@@ -105,13 +105,13 @@ class UmzClient {
   UmzClient({String baseUrl = 'https://self.umz.ac.ir', Dio? dio})
       : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''),
         _dio = dio ?? Dio() {
-    _dio.options
-      ..followRedirects = false
-      ..validateStatus = (_) => true
-      ..connectTimeout = const Duration(seconds: 20)
-      ..receiveTimeout = const Duration(seconds: 40)
-      ..headers['User-Agent'] =
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) UMZSelf/0.1';
+    final o = _dio.options;
+    o.followRedirects = false;
+    o.validateStatus = (_) => true;
+    o.connectTimeout = const Duration(seconds: 20);
+    o.receiveTimeout = const Duration(seconds: 40);
+    o.headers['User-Agent'] =
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) UMZSelf/0.1';
     _dio.interceptors.add(CookieManager(_jar));
   }
 
